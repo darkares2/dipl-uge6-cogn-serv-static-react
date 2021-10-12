@@ -56,7 +56,7 @@ const App = () => {
           Category: {category} <br />
           Caption: {caption} <br />
         </span>
-        <img src={url} alt="some image" />
+        <img src={url} alt="Content to be analyzed by cognitive computer vision" />
   </div>);
 }
 

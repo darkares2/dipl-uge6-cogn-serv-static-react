@@ -6,8 +6,6 @@ module.exports = async function (context, req) {
     const key = process.env.cognid;
     const endpoint = process.env.cognendp;
 
-    context.log('JavaScript HTTP trigger function processed a request.');
-
     const url = (req.query.url || (req.body && req.body.url));
     context.log('Url: ' + url);
 
