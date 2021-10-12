@@ -6,6 +6,8 @@ const App = () => {
   const [errorMessage, setErrorMessage] = useState('')
   const [isDisabled, setDisabled] = useState(true);
   const [data, setData] = useState('');
+  const [category, setCategory] = useState('');
+  const [caption, setCaption] = useState('');
   const [url, setUrl] = useState({});
 
 
@@ -27,6 +29,12 @@ const App = () => {
       const text = await( await fetch(`/api/AnalyzeImage?url=` + url)).json();
       console.log('Text: ', text);
       setData(text.message);
+      const categories = text.categories;
+      categories.sort((a, b) => b.score - a.score);
+      setCategory(categories.map(cat => `${cat.name} (${cat.score.toFixed(2)})`).join(', '));
+      const captions = text.captions;
+      captions.sort((a, b) => b.confidence - a.confidence);
+      setCaption(captions.map(cap => `${cap.text} (${cap.confidence.toFixed(2)})`).join(', '));
     })();
   };
 
@@ -44,8 +52,11 @@ const App = () => {
           Analyze image!
         </button>
         <span>
-          Result: {data}
+          Result: {data} <br />
+          Category: {category} <br />
+          Caption: {caption} <br />
         </span>
+        <img src={url} alt="some image" />
   </div>);
 }
 
