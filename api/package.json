@@ -7,7 +7,8 @@
     "test": "echo \"No tests yet...\""
   },
   "dependencies": {
-    "@azure/cognitiveservices-computervision": "^8.1.0"
+    "@azure/cognitiveservices-computervision": "^8.1.0",
+    "dotenv": "^10.0.0"
   },
   "devDependencies": {}
 }
