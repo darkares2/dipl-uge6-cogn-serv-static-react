@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import validator from 'validator'
-  
+import spinner from './spinner.jpg';
+
 const App = () => {
   
   const [errorMessage, setErrorMessage] = useState('')
   const [isDisabled, setDisabled] = useState(true);
+  const [isWaiting, setWaiting] = useState(false);
   const [data, setData] = useState('');
   const [category, setCategory] = useState('');
   const [caption, setCaption] = useState('');
@@ -14,7 +16,7 @@ const App = () => {
   const validate = (value) => {
     
     if (validator.isURL(value)) {
-      setErrorMessage('Is Valid URL')
+      setErrorMessage('')
       setDisabled(false);
       setUrl(value);
     } else {
@@ -26,23 +28,40 @@ const App = () => {
 
   const analyzeImage = () => {
     (async function () {
-      const text = await( await fetch(`/api/AnalyzeImage?url=` + url)).json();
+      setDisabled(true);
+      setWaiting(true);
+      var text = null;
+      await fetch(`/api/AnalyzeImage?url=` + url)
+                .then(response => { 
+                  console.log("Response: ", response);
+                  if (response.status >= 400 && response.status < 600) {
+                    throw new Error("Bad response from server");
+                  }
+                  return response.json(); 
+                } )
+                .then(json => { text = json; } )
+                .catch(error => { console.log("Error: ", error); });
+      setWaiting(false);
+      setDisabled(false);
       console.log('Text: ', text);
-      setData(text.message);
-      const categories = text.categories;
-      categories.sort((a, b) => b.score - a.score);
-      setCategory(categories.map(cat => `${cat.name} (${cat.score.toFixed(2)})`).join(', '));
-      const captions = text.captions;
-      captions.sort((a, b) => b.confidence - a.confidence);
-      setCaption(captions.map(cap => `${cap.text} (${cap.confidence.toFixed(2)})`).join(', '));
+      if (text !== null) {
+        setData(text.message);
+        const categories = text.categories;
+        categories.sort((a, b) => b.score - a.score);
+        setCategory(categories.map(cat => `${cat.name} (${cat.score.toFixed(2)})`).join(', '));
+        const captions = text.captions;
+        captions.sort((a, b) => b.confidence - a.confidence);
+        setCaption(captions.map(cap => `${cap.text} (${cap.confidence.toFixed(2)})`).join(', '));
+      }
     })();
   };
 
   
   return (<div>
     <h2>Enter image url to analyze</h2>
-        <span>Enter URL: </span><input type="text" 
-        onChange={(e) => validate(e.target.value)}></input> <br />
+    { isWaiting ? <img src={spinner} style={{ width: '340px', margin: 'auto', display: 'block' }} alt="Loading..." /> :
+      <div>
+        <span>Enter URL: </span><input type="text" onChange={(e) => validate(e.target.value)}></input> <br />
         <span style={{
           fontWeight: 'bold',
           color: 'red',
@@ -56,7 +75,10 @@ const App = () => {
           Category: {category} <br />
           Caption: {caption} <br />
         </span>
-        <img src={url} alt="Content to be analyzed by cognitive computer vision" />
+      </div>
+      }
+    
+    <img src={url} alt="Content to be analyzed by cognitive computer vision" />
   </div>);
 }
 
