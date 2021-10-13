@@ -28,12 +28,15 @@ const App = () => {
     (async function () {
       setDisabled(true);
       setWaiting(true);
+      setData('');
+      setCategory('');
+      setCaption('');
       var text = null;
       await fetch(`/api/AnalyzeImage?url=` + url)
                 .then(response => { 
                   console.log("Response: ", response);
                   if (response.status >= 400 && response.status < 600) {
-                    throw new Error("Bad response from server");
+                    setData(response.statusText);
                   }
                   return response.json(); 
                 } )
@@ -44,20 +47,24 @@ const App = () => {
       console.log('Text: ', text);
       if (text !== null) {
         setData(text.message);
-        const categories = text.categories;
-        categories.sort((a, b) => b.score - a.score);
-        setCategory(categories.map(cat => `${cat.name} (${cat.score.toFixed(2)})`).join(', '));
-        const captions = text.captions;
-        captions.sort((a, b) => b.confidence - a.confidence);
-        setCaption(captions.map(cap => `${cap.text} (${cap.confidence.toFixed(2)})`).join(', '));
-      }
+        if (text.categories !== undefined) {
+          const categories = text.categories;
+          categories.sort((a, b) => b.score - a.score);
+          setCategory(categories.map(cat => `${cat.name} (${cat.score.toFixed(2)})`).join(', '));
+        }
+        if (text.captions !== undefined) {
+          const captions = text.captions;
+          captions.sort((a, b) => b.confidence - a.confidence);
+          setCaption(captions.map(cap => `${cap.text} (${cap.confidence.toFixed(2)})`).join(', '));
+        }
+      } 
     })();
   };
 
   
   return (<div>
-    <h2>Enter image url to analyze</h2>
-    { isWaiting ? <img src={spinner} style={{ width: '340px', margin: 'auto', display: 'block' }} alt="Loading..." /> :
+    <h2>Image Analyzer</h2>
+    { isWaiting ? <img src={spinner} style={{ width: '340px', margin: 'auto', display: 'block', position: 'absolute' }} alt="Loading..." /> :
       <div>
         <span>Enter URL: </span><input type="text" onChange={(e) => validate(e.target.value)} value={url}></input> <br />
         <div>
@@ -74,6 +81,7 @@ const App = () => {
         <button onClick={analyzeImage} disabled={isDisabled}>
           Analyze image!
         </button>
+        <hr/>
         <span>
           Result: {data} <br />
           Category: {category} <br />

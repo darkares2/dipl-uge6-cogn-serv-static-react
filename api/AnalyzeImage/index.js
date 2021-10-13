@@ -12,18 +12,31 @@ module.exports = async function (context, req) {
     const computerVisionClient = new ComputerVisionClient(
         new ApiKeyCredentials({ inHeader: { 'Ocp-Apim-Subscription-Key': key } }), endpoint);
 
-    const description = (await computerVisionClient.describeImage(url));
-    context.log('Descriptions: ', description);
-    const captions = description.captions;
-    context.log(`This may be ${captions[0].text} (${captions[0].confidence.toFixed(2)} confidence)`);
-    const analyzed = (await computerVisionClient.analyzeImage(url, { visualFeatures: ['Categories', 'Objects', 'Brands', 'Faces'] }));
-    context.log('Analyzed: ', analyzed);
-    const categories = analyzed.categories;
-    const data = { url: url, message: "Analyzed", captions: captions, categories: categories };
-    const responseMessage = data;
+    try {
+        const description = (await computerVisionClient.describeImage(url));
+        context.log('Descriptions: ', description);
+        const captions = description.captions;
+        context.log(`This may be ${captions[0].text} (${captions[0].confidence.toFixed(2)} confidence)`);
+        const analyzed = (await computerVisionClient.analyzeImage(url, { visualFeatures: ['Categories', 'Objects', 'Brands', 'Faces'] }));
+        context.log('Analyzed: ', analyzed);
+        const categories = analyzed.categories;
+        const data = { url: url, message: "Analyzed", captions: captions, categories: categories };
+        const responseMessage = data;
+        context.res = {
+            // status: 200, /* Defaults to 200 */
+            body: responseMessage
+        };
+        } catch(error) {
+            context.log("Catch: ", error.body.error.message);
+            var message = "Failed";
+            if (error.body !== undefined && error.body.error !== undefined && error.body.error.message !== undefined)
+                message = error.body.error.message;
+            const data = { url: url, message: message};
+            const responseMessage = data;
+            context.res = {
+                status: 500,
+                body: responseMessage
+            };
+        }
 
-    context.res = {
-        // status: 200, /* Defaults to 200 */
-        body: responseMessage
-    };
 }
