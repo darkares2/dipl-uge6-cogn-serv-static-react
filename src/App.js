@@ -10,19 +10,17 @@ const App = () => {
   const [data, setData] = useState('');
   const [category, setCategory] = useState('');
   const [caption, setCaption] = useState('');
-  const [url, setUrl] = useState({});
+  const [url, setUrl] = useState('');
 
 
   const validate = (value) => {
-    
+    setUrl(value);
     if (validator.isURL(value)) {
       setErrorMessage('')
       setDisabled(false);
-      setUrl(value);
     } else {
       setErrorMessage('Is Not Valid URL')
       setDisabled(true);
-      setUrl('');
     }
   }
 
@@ -61,7 +59,13 @@ const App = () => {
     <h2>Enter image url to analyze</h2>
     { isWaiting ? <img src={spinner} style={{ width: '340px', margin: 'auto', display: 'block' }} alt="Loading..." /> :
       <div>
-        <span>Enter URL: </span><input type="text" onChange={(e) => validate(e.target.value)}></input> <br />
+        <span>Enter URL: </span><input type="text" onChange={(e) => validate(e.target.value)} value={url}></input> <br />
+        <div>
+          Examples:
+          <button onClick={(e) => validate('https://picsum.photos/id/237/200/300')}>Dog</button>
+          <button onClick={(e) => validate('https://picsum.photos/id/200/200/300')}>Cow</button>
+          <button onClick={(e) => validate('https://picsum.photos/id/309/200/300')}>Leaf</button>
+        </div>
         <span style={{
           fontWeight: 'bold',
           color: 'red',
